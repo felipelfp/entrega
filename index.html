@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bora Roda! - Sistema de Entregas</title>
+    <link rel="stylesheet" href="stilos.css">
+</head>
+
+<body>
+
+
+    <div class="top-header">
+        <div class="logo">
+            <span class="logo-icon">🏍️</span>
+            <span>Bora Roda</span>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-item">
+                <div class="stat-label">KM Hoje</div>
+                <div class="stat-value" id="headerKM">0 KM</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Ganhos Hoje</div>
+                <div class="stat-value" id="headerGanhos">R$ 0</div>
+            </div>
+        </div>
+        <div class="header-icons">
+            <div class="header-icon">💰</div>
+            <div class="header-icon">⚙️</div>
+            <div class="header-icon">👤</div>
+        </div>
+    </div>
+
+
+    <div class="sidebar">
+        <div class="nav-item active">
+            <span class="nav-icon">🏠</span>
+            <span>Dashboard</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span>Estatísticas</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">📅</span>
+            <span>Calendário</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">💵</span>
+            <span>Financeiro</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">🎯</span>
+            <span>Metas</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">⚙️</span>
+            <span>Configurações</span>
+        </div>
+    </div>
+
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <span class="page-title-icon">🏠</span>
+                Dashboard
+            </div>
+            <p class="page-subtitle">Bem-vindo de volta! Acompanhe suas entregas de 14:00 às 22:00</p>
+        </div>
+
+        <div class="dashboard">
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">⏰</span>
+                    Ponto de Hoje
+                </div>
+                <div class="time-display" id="currentTime">--:--</div>
+                <div id="workStatus" class="status-badge status-off">Fora do Expediente</div>
+                <button class="btn btn-success" id="btnEntrada" onclick="registrarEntrada()">Registrar Entrada</button>
+                <button class="btn btn-danger" id="btnSaida" onclick="registrarSaida()" style="display: none;">Registrar
+                    Saída</button>
+                <div id="pontoInfo" style="margin-top: 12px; font-size: 0.85rem; color: #666;"></div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">📍</span>
+                    Quilometragem
+                </div>
+                <div class="input-group">
+                    <label>KM Atual do Odômetro</label>
+                    <input type="number" id="kmAtual" placeholder="Ex: 10700" step="0.1">
+                </div>
+                <button class="btn" onclick="registrarKm()">Registrar KM</button>
+                <div style="margin-top: 16px;">
+                    <div class="card-value" id="kmRodados">0</div>
+                    <div class="card-label">KM rodados </div>
+                    <div class="card-label">1000 Trocar de oleo </div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">💰</span>
+                    Ganhos do Dia
+                </div>
+                <div class="input-group">
+                    <label>Quanto você fez hoje?</label>
+                    <input type="number" id="ganhoDia" placeholder="Ex: 180.00" step="0.01">
+                </div>
+                <button class="btn" onclick="registrarGanho()">Registrar Ganho</button>
+                <div style="margin-top: 16px;">
+                    <div class="card-value positive" id="totalGanho">R$ 0,00</div>
+                    <div class="card-label">Total de hoje</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">⛽</span>
+                    Gastos do Dia
+                </div>
+                <div class="input-group">
+                    <label>Gasolina (R$)</label>
+                    <input type="number" id="gastoGasolina" placeholder="Ex: 50.00" step="0.01">
+                </div>
+                <div class="input-group">
+                    <label>Manutenção (R$)</label>
+                    <input type="number" id="gastoManutencao" placeholder="Ex: 30.00" step="0.01">
+                </div>
+                <button class="btn" onclick="registrarGastos()">Registrar Gastos</button>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">📊</span>
+                    Estatísticas
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-box-label">Total Ganhos</div>
+                        <div class="stat-box-value positive" id="statGanhos">R$ 0,00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">Total Gastos</div>
+                        <div class="stat-box-value negative" id="statGastos">R$ 0,00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">Lucro Líquido</div>
+                        <div class="stat-box-value neutral" id="statLucro">R$ 0,00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">KM Total</div>
+                        <div class="stat-box-value neutral" id="statKmTotal">0 km</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">💵</span>
+                    Financeiro
+                </div>
+                <div class="financial-info">
+                    <div class="financial-row">
+                        <span class="financial-label">Meta Mensal:</span>
+                        <span class="financial-value">R$ 2.500,00</span>
+                    </div>
+                    <div class="financial-row">
+                        <span class="financial-label">Acumulado:</span>
+                        <span class="financial-value positive" id="financeiroAcumulado">R$ 0,00</span>
+                    </div>
+                    <div class="financial-row">
+                        <span class="financial-label">Falta:</span>
+                        <span class="financial-value neutral" id="financeiroFalta">R$ 2.500,00</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="financeiroProgress" style="width: 0%"></div>
+                </div>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: #666; text-align: center;"
+                    id="financeiroPercent">0% do mês</div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">🎯</span>
+                    Metas
+                </div>
+                <div class="metas-section">
+                    <div class="meta-box">
+                        <div class="meta-box-title">Meta Diária</div>
+                        <div class="meta-box-value">R$ 150.00</div>
+                        <div id="metaIndicatorDiaria" class="meta-indicator meta-fail">
+
+                        </div>
+                    </div>
+                    <div class="meta-box">
+                        <div class="meta-box-title">Meta Mensal</div>
+                        <div class="meta-box-value" id="metaMensal">R$ 2.500,00 </div>
+                        <div class="progress-bar" style="margin-top: 12px;">
+                            <div class="progress-fill" id="metaMensalProgress" style="width: 0%"></div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.85rem; color: #666; text-align: center;"
+                            id="metaMensalPercent">0%</div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="card-title-icon">📚</span>
+                    Estagio
+                </div>
+                <div class="metas-section">
+                    <div class="meta-box">
+                        <div class="meta-box-title">Salario</div>
+                        <div class="meta-box-value">R$ 1.000,00</div>
+                        <div id="metaIndicatorDiaria" class="meta-indicator meta-fail">
+
+                        </div>
+                    </div>
+                    <div class="meta-box">
+                        <div class="meta-box-title">Vale</div>
+                        <div class="meta-box-value" id="metaMensal">R$ 500,00 </div>
+                        <div class="progress-bar" style="margin-top: 12px;">
+                            <div class="progress-fill" id="metaMensalProgress" style="width: 0%"></div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.85rem; color: #666; text-align: center;"
+                            id="metaMensalPercent">0%</div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+
+           
+
+
+
+
+
+
+
+
+
+    <div class="card card-full">
+        <div class="card-title">
+            <span class="card-title-icon">📅</span>
+            Calendário e Histórico
+        </div>
+        <div class="week-calendar" id="weekCalendar"></div>
+        <div class="history-section" id="historySection">
+            <div class="history-title">Histórico do Dia Selecionado</div>
+            <div id="historyContent" class="history-content">
+                Selecione um dia no calendário para ver o histórico
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Mensagem</div>
+            <p id="modalMessage" style="color: #888; line-height: 1.6;"></p>
+            <button class="btn close-modal" onclick="fecharModal()">Fechar</button>
+        </div>
+    </div>
+    <button class="btn btn-danger" onclick="resetarTudo()">🔄 Novo mes</button>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
