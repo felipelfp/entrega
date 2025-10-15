@@ -1,4 +1,3 @@
-
 const dados = JSON.parse(localStorage.getItem("deliveryData")) || {
   dias: {},
   kmAnterior: 0,
@@ -48,6 +47,7 @@ function getDadosDia(data) {
       ganhos: 0,
       gastoGasolina: 0,
       gastoManutencao: 0,
+      gastoAntecipacao: 0,
       metaBatida: false,
     };
   }
@@ -161,23 +161,29 @@ function calcularAcumuladoMensal() {
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
-  let acumulado = 0;
+  let totalGanhosMes = 0;
+  let totalGastosMes = 0;
 
   Object.keys(dados.dias).forEach((data) => {
     const dataObj = new Date(data + "T00:00:00");
     if (dataObj.getMonth() === mesAtual && dataObj.getFullYear() === anoAtual) {
-      acumulado += dados.dias[data].ganhos;
+      const dia = dados.dias[data];
+      totalGanhosMes += dia.ganhos;
+      // Soma todos os gastos do dia para o total de gastos do mês
+      totalGastosMes += dia.gastoGasolina + dia.gastoManutencao + (dia.gastoAntecipacao || 0);
     }
   });
-  return acumulado;
+  // O Acumulado agora é o Lucro Líquido do mês
+  return totalGanhosMes - totalGastosMes;
 }
 
 
 function registrarGastos() {
   const gasolina = Number.parseFloat(document.getElementById("gastoGasolina").value) || 0;
   const manutencao = Number.parseFloat(document.getElementById("gastoManutencao").value) || 0;
+  const antecipacao = Number.parseFloat(document.getElementById("gastoAntecipacao").value) || 0;
 
-  if (gasolina === 0 && manutencao === 0) {
+  if (gasolina === 0 && manutencao === 0 && antecipacao === 0) {
     mostrarModal("Erro", "Por favor, insira pelo menos um valor de gasto.");
     return;
   }
@@ -187,13 +193,15 @@ function registrarGastos() {
 
   if (gasolina > 0) dadosHoje.gastoGasolina += gasolina;
   if (manutencao > 0) dadosHoje.gastoManutencao += manutencao;
+  if (antecipacao > 0) dadosHoje.gastoAntecipacao += antecipacao;
 
   document.getElementById("gastoGasolina").value = "";
   document.getElementById("gastoManutencao").value = "";
+  document.getElementById("gastoAntecipacao").value = "";
 
   salvarDados();
 
-  const total = gasolina + manutencao;
+  const total = gasolina + manutencao + antecipacao;
   mostrarModal("Gastos Registrados!", `Total de R$ ${total.toFixed(2)} em gastos registrado.`);
 }
 
@@ -275,7 +283,7 @@ function atualizarEstatisticas() {
 
   Object.values(dados.dias).forEach((dia) => {
     totalGanhos += dia.ganhos;
-    totalGastos += dia.gastoGasolina + dia.gastoManutencao;
+    totalGastos += dia.gastoGasolina + dia.gastoManutencao + (dia.gastoAntecipacao || 0);
     totalKm += dia.kmRodados;
   });
 
@@ -321,5 +329,91 @@ function fecharModal() {
 }
 
 
-atualizarInterface();
+function atualizarMetaMensal() {
+    const metaMensal = dados.metaMensal;
+    let kmAcumuladoMes = 0;
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
 
+    Object.keys(dados.dias).forEach((data) => {
+        const dataObj = new Date(data + "T00:00:00");
+        if (dataObj.getMonth() === mesAtual && dataObj.getFullYear() === anoAtual) {
+            kmAcumuladoMes += dados.dias[data].kmRodados;
+        }
+    });
+
+    const percentual = Math.min((kmAcumuladoMes / metaMensal) * 100, 100);
+
+    const metaMensalElement = document.getElementById("metaMensal");
+    if (metaMensalElement) {
+        metaMensalElement.textContent = `${kmAcumuladoMes.toFixed(0)} / ${metaMensal} KM`;
+    }
+
+    const progressElement = document.getElementById("metaMensalProgress");
+    if (progressElement) {
+        progressElement.style.width = `${percentual}%`;
+    }
+
+    const percentElement = document.getElementById("metaMensalPercent");
+    if (percentElement) {
+        percentElement.textContent = `${percentual.toFixed(1)}%`;
+    }
+
+    const dataHoje = getDataHoje();
+    const dadosHoje = getDadosDia(dataHoje);
+    const metaIndicatorDiaria = document.getElementById("metaIndicatorDiaria");
+    
+    if (metaIndicatorDiaria) {
+      if (dadosHoje.kmRodados > 0) {
+        if (dadosHoje.kmRodados >= dados.metaDiaria) {
+          metaIndicatorDiaria.className = "meta-indicator meta-success";
+          metaIndicatorDiaria.textContent = "Meta Batida!";
+        } else {
+          metaIndicatorDiaria.className = "meta-indicator meta-fail";
+          metaIndicatorDiaria.textContent = `${(dados.metaDiaria - dadosHoje.kmRodados).toFixed(1)} km para a meta`;
+        }
+      } else {
+        metaIndicatorDiaria.className = "meta-indicator meta-fail";
+        metaIndicatorDiaria.textContent = "Ainda não iniciado";
+      }
+    }
+}
+
+
+function mostrarHistoricoDia(data) {
+    const historyContent = document.getElementById("historyContent");
+    const dadosDia = dados.dias[data];
+
+    document.querySelectorAll(".day-card").forEach(card => card.classList.remove("active"));
+    
+    const selectedDayCard = document.querySelector(`.day-card[data-date="${data}"]`);
+    if (selectedDayCard) {
+        selectedDayCard.classList.add("active");
+    }
+
+
+    if (!dadosDia) {
+        historyContent.innerHTML = "<div>Não há dados para esta data.</div>";
+        return;
+    }
+
+    const totalGastos = dadosDia.gastoGasolina + dadosDia.gastoManutencao + (dadosDia.gastoAntecipacao || 0);
+    const lucroDia = dadosDia.ganhos - totalGastos;
+
+    historyContent.innerHTML = `
+        <div class="history-item"><span class="history-label">Entrada:</span><span class="history-value">${dadosDia.entrada || "--"}</span></div>
+        <div class="history-item"><span class="history-label">Saída:</span><span class="history-value">${dadosDia.saida || "--"}</span></div>
+        <div class="history-item"><span class="history-label">KM Inicial:</span><span class="history-value">${dadosDia.kmInicial.toFixed(1)} km</span></div>
+        <div class="history-item"><span class="history-label">KM Final:</span><span class="history-value">${dadosDia.kmFinal.toFixed(1)} km</span></div>
+        <div class="history-item"><span class="history-label">KM Rodados:</span><span class="history-value">${dadosDia.kmRodados.toFixed(1)} km</span></div>
+        <div class="history-item"><span class="history-label">Ganhos:</span><span class="history-value positive">R$ ${dadosDia.ganhos.toFixed(2)}</span></div>
+        <div class="history-item"><span class="history-label">Gasto Gasolina:</span><span class="history-value negative">R$ ${dadosDia.gastoGasolina.toFixed(2)}</span></div>
+        <div class="history-item"><span class="history-label">Gasto Manutenção:</span><span class="history-value negative">R$ ${dadosDia.gastoManutencao.toFixed(2)}</span></div>
+        <div class="history-item"><span class="history-label">Gasto Antecipação:</span><span class="history-value negative">R$ ${(dadosDia.gastoAntecipacao || 0).toFixed(2)}</span></div>
+        <div class="history-item"><span class="history-label">Lucro do Dia:</span><span class="history-value ${lucroDia >= 0 ? "positive" : "negative"}">R$ ${lucroDia.toFixed(2)}</span></div>
+    `;
+}
+
+
+atualizarInterface();
